@@ -1,18 +1,22 @@
-﻿namespace hangman;
+﻿using System.Reflection.Metadata;
+
+namespace hangman;
 
 class Program
 {
     static void Main(string[] args)
     {
+        // Initialize game variables
         string word = SetupGame();
         int len = word.Length;
-        int liv = 6;
+        int lives = 6;  // Number of lives
         string guessedLetters = "";
-        string hints = "".PadRight(len, '_');
+        string hints = "".PadRight(len, '_');  // Placeholder for guessed letters
         bool hasWon = false;
 
-        while (DrawScreen(liv, guessedLetters, hints, hasWon)) {
-            if (LetterOrWord()) {
+        // Main game loop
+        while (DrawScreen(lives, guessedLetters, hints, hasWon)) {
+            if (LetterOrWord()) {  // Check if the player wants to guess the whole word
                 string guess = ReceiveWord();
                 if (guess == word) {
                     hasWon = true;
@@ -20,23 +24,23 @@ class Program
                     continue;
                 }
                 else {
-                    liv--;
+                    lives--;  // Reduce lives if the guess is incorrect
                     continue;
                 }
             }
-            else {
+            else {  // Guessing a single letter
                 char guess = ReceiveLetter();
                 if (guessedLetters.Contains(guess)) {
                     Console.WriteLine("Du har allerede gættet det bogstav");
-                    Console.WriteLine("Du har ikke mistet et liv. tryk enter for at starte runden forfra");
+                    Console.WriteLine("Du har ikke mistet et lives. tryk enter for at starte runden forfra");
                     Console.ReadKey(true);
                     continue;
                 }
-                guessedLetters = guessedLetters + guess;
-                if (word.Contains(guess)) {
+                guessedLetters += guess;
+                if (word.Contains(guess)) {  // Check if the guessed letter is in the word
                     for (int i = 0; i < len; i++) {
                         if (word[i] == guess) {
-                            hints = hints.Substring(0,i) + guess + hints.Substring(i+1);
+                            hints = hints.Substring(0, i) + guess + hints.Substring(i + 1);
                         }
                     }
                     if (hints == word) {
@@ -44,19 +48,24 @@ class Program
                     }
                 }
                 else {
-                    liv--;
+                    lives--;  // Incorrect letter guessed
+                    if (lives <= 0) {
+                        hints = word;
+                    }
                 }
             }
         }
-
     }
 
     const string alphabet = "abcdefghijklmnopqrstuvwxyzæøå";
 
+    // Sets up the game by prompting the user to choose a word
     static string SetupGame() {
         Console.WriteLine("Velkommen til mit hangman spil.");
         return ReceiveWord();
     }
+
+    // Receives a letter input from the user and validates it
     static char ReceiveLetter() {
         while (true) {
             Console.WriteLine("Vælg et bogstav");
@@ -81,6 +90,7 @@ class Program
         }
     }
 
+    // Receives a word input from the user and validates it
     static string ReceiveWord() {
         while (true) {
             Console.WriteLine("Vælg et ord");
@@ -107,6 +117,7 @@ class Program
         }
     }
 
+    // Validates if the input contains only Danish alphabet characters
     static bool vaildateWord(string word) {
         foreach (char c in word) {
             if (!alphabet.Contains(c)) {
@@ -116,6 +127,7 @@ class Program
         return true;
     }
 
+    // Determines whether the user wants to guess a letter or a word
     static bool LetterOrWord() {
         while (true) {
             Console.WriteLine("Vil du gætte ordet eller et bogstav. skriv tallet");
@@ -133,23 +145,14 @@ class Program
                 Console.ReadKey(true);
                 continue;
             }
-            if (valg == 1) {
-                return false;
-            }
-            else if (valg == 2) {
-                return true;
-            }
-            else {
-                Console.WriteLine("du skal taste 1 eller 2");
-                Console.ReadKey(true);
-                continue;
-            }
+            return valg == 2;
         }
     }
 
-    static bool DrawScreen(int liv, string guessedLetters, string hints, bool hasWon) {
+    // Displays the current game state
+    static bool DrawScreen(int lives, string guessedLetters, string hints, bool hasWon) {
         Console.Clear();
-        string[] animationer = 
+        string[] animationer = // Hangman visuals
             [
                 "  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n=========",
                 "  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=========",
@@ -158,29 +161,31 @@ class Program
                 "  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=========",
                 "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========",
                 "  +---+\n  |   |\n      |\n      |\n      |\n      |\n=========",
-            ];
+            ]; 
 
-            Console.WriteLine(animationer[liv]);
-            Console.WriteLine("");
-            Console.WriteLine("allerede gættede bogstaver: " + guessedLetters);
-            Console.WriteLine("");
-            Console.WriteLine(hints);
-            Console.WriteLine("");
-            if (hasWon) {
-                Win();
-                return false;
-            }
-            else if (liv <= 0) {
-                Lose();
-                return false;
-            }
-            return true;
+        Console.WriteLine(animationer[lives]);
+        Console.WriteLine("");
+        Console.WriteLine("allerede gættede bogstaver: " + guessedLetters);
+        Console.WriteLine("");
+        Console.WriteLine(hints);
+        Console.WriteLine("");
+        if (hasWon) {
+            Win();
+            return false;
+        }
+        else if (lives <= 0) {
+            Lose();
+            return false;
+        }
+        return true;
     }
 
+    // Displays winning message
     static void Win() {
         Console.WriteLine("DET ER RIGTIGT!!! DU HAR VUNDET");
     }
 
+    // Displays losing message
     static void Lose() {
         Console.WriteLine("Du er desværre løbet tør for liv");
     }
